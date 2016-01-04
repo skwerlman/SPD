@@ -1,6 +1,6 @@
 SPD
 ===
-Submitted Picture Downloader
+__Submitted Picture Downloader__
 
 Downloads every image a redditor has ever submitted.
 Currently only works with images uploaded to [imgur](//imgur.com) or [gfycat](//gfycat.com).
