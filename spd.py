@@ -4,6 +4,7 @@ import os
 import re
 import sys
 
+from platform import system as operatingSystem
 from subprocess import call
 from urllib.request import Request, urlopen
 
@@ -25,7 +26,11 @@ def getSubmittedPage(userName):
 def downloadImage(link):
     print('downloading: ' + link)
     # open wget in the background
-    call(['wget', '-b', '-N', '-o', '/dev/null', link])
+    if operatingSystem() == 'Windows':
+        # NUL ~ /dev/null
+        call(['wget', '-b', '-N', '-o', 'NUL', link])
+    else:
+        call(['wget', '-b', '-N', '-o', '/dev/null', link])
 
 
 def downloadImageGallery(link):
@@ -79,10 +84,15 @@ def pageGetNextPage(webpage, userName):
         return None
 
 userName = sys.argv[1]
+if len(sys.argv) > 2:
+    basePath = sys.argv[2]
+else:
+    basePath = os.path.expanduser("~/Pictures/SPD/")
 
-if not os.path.exists("~/Pictures/SPD/" + userName):
-    os.makedirs("~/Pictures/SPD/" + userName)
-os.chdir("~/Pictures/SPD/" + userName)
+
+if not os.path.exists(basePath + userName):
+    os.makedirs(basePath + userName)
+os.chdir(basePath + userName)
 
 userSubmitted = getSubmittedPage(userName)
 
