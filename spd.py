@@ -56,7 +56,8 @@ def isGallery(link):
 
 def getAllImageURLs(webpage):
     urlList = re.findall(
-        r'src="//(i\.imgur\.com/[a-zA-Z0-9]{7}\.(?:[a-z]{3,4})(?:\?[0-9]+?)?)"',
+        'src="//(i\\.imgur\\.com/(?:[a-zA-Z0-9]{7}|' +
+        '[a-zA-Z0-9]{5})\\.(?:[a-z]{3,4})(?:\\?[0-9]+?))"',
         webpage)
     return urlList
 
