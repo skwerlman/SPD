@@ -16,7 +16,8 @@ Let me know if you need it to work with another site.
 
 You need to have `wget` installed and in your path for this to work.
 
-I have not tried to make this work in Windows, so there may be issues with that.
+On Windows, you need to have GnuWin `wget` installed to `C:\Program Files (x86)\GnuWin32\bin\wget.exe` (the default) 
+You can get it here: http://gnuwin32.sourceforge.net/packages/wget.htm
 
 If SPD downloads an html document by accident, let me know so I can fix it.
 
