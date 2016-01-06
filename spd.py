@@ -63,10 +63,12 @@ def getAllImageURLs(webpage):
 
 def getAllImages(webpage):
     for link in re.findall(
-            "<a class=\"title may-blank ?\" href=\"(https?://" +
-            "(?:gfycat\\.com/[a-zA-Z]+|" +
-            "imgur\\.com/(?:[a-zA-Z0-9]{7}|a/[a-zA-Z0-9]{5})|" +
-            "i\\.imgur\\.com/[a-zA-Z0-9]{7}\\.(?:[a-z]{3,4})(?:\?[0-9]+?)?))",
+            '<a class=\"title may-blank ?\" href=\"(https?://' +
+            '(?:gfycat\\.com/[a-zA-Z]+|' +
+            'imgur\\.com/(?:[a-zA-Z0-9]{7}|[a-zA-Z0-9]{5})|' +
+            'imgur\\.com/a/[a-zA-Z0-9]{5}|' +
+            'imgur\\.com/gallery/[a-zA-Z0-9]{5}|' +
+            'i\\.imgur\\.com/(?:[a-zA-Z0-9]{7}|[a-zA-Z0-9]{5})\\.(?:[a-z]{3,4})(?:\?[0-9]+?)?))',
             webpage):
         link = link.replace('http:', 'https:')
         link = link.replace('.gifv', '.gif')  # fix handling of gifv links
