@@ -25,11 +25,13 @@ def getSubmittedPage(userName):
 
 def downloadImage(link):
     print('downloading: ' + link)
-    # open wget in the background
+    if not re.match(r'^https?://', link):
+        link = 'https://' + link
     if operatingSystem() == 'Windows':
-        # NUL ~ /dev/null
-        call(['wget', '-b', '-N', '-o', 'NUL', link])
+        # pip install wget does not have standard options
+        call(['python', '-m', 'wget', link])
     else:
+        # open wget in the background
         call(['wget', '-b', '-N', '-o', '/dev/null', link])
 
 
