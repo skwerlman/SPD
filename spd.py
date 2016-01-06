@@ -25,14 +25,15 @@ def getSubmittedPage(userName):
 
 def downloadImage(link):
     print('downloading: ' + link)
-    if not re.match(r'^https?://', link):
-        link = 'https://' + link
     if operatingSystem() == 'Windows':
-        # pip install wget does not have standard options
-        call(['python', '-m', 'wget', link])
+        # manually installed wget
+        # --no-check-certificate is used because GnuWin wget fails to verify 
+        #   all certificates for some reason
+        call(['C:\\Program Files (x86)\\GnuWin32\\bin\\wget.exe', '-b',
+              '-N', '-o', 'spd.log', '--no-check-certificate', link])
     else:
         # open wget in the background
-        call(['wget', '-b', '-N', '-o', '/dev/null', link])
+        call(['wget', '-b', '-N', '-o', 'spd.log', link])
 
 
 def downloadImageGallery(link):
