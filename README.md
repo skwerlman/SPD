@@ -20,5 +20,3 @@ On Windows, you need to have GnuWin `wget` installed to `C:\Program Files (x86)\
 You can get it here: http://gnuwin32.sourceforge.net/packages/wget.htm
 
 If SPD downloads an html document by accident, let me know so I can fix it.
-
-Changing the default download directory is probably broken right now.
