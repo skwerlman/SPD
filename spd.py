@@ -89,7 +89,7 @@ def pageGetNextPage(webpage, userName):
 
 userName = sys.argv[1]
 if len(sys.argv) > 2:
-    basePath = os.path.expanduser(sys.argv[2])
+    basePath = os.path.expanduser(sys.argv[2]) + '/'
 else:
     basePath = os.path.expanduser("~/Pictures/SPD/")
 
