@@ -7,6 +7,7 @@ import sys
 from platform import system as operatingSystem
 from subprocess import call
 from urllib.request import Request, urlopen
+from shutil import which
 
 
 def getWebPage(url):
@@ -25,15 +26,20 @@ def getSubmittedPage(userName):
 
 def downloadImage(link):
     print('downloading: ' + link)
-    if operatingSystem() == 'Windows':
-        # manually installed wget
-        # --no-check-certificate is used because GnuWin wget fails to verify 
-        #   all certificates for some reason
-        call(['C:\\Program Files (x86)\\GnuWin32\\bin\\wget.exe', '-b',
-              '-N', '-o', 'NUL', '--no-check-certificate', link])
-    else:
-        # open wget in the background
-        call(['wget', '-b', '-N', '-o', '/dev/null', link])
+    wgetCommand = [which('wget'), '-b', '-N', '-o', '/dev/null', link]
+    if which('wget') is None:
+        if operatingSystem() == 'Windows' and os.path.isfile(
+                'C:\\Program Files (x86)\\GnuWin32\\bin\\wget.exe'):
+            wgetCommand = ['C:\\Program Files (x86)\\GnuWin32\\bin\\wget.exe',
+                           '-b', '-N', '-o', 'NUL',
+                           '--no-check-certificate', link]
+        else:
+            raise FileNotFoundError('Could not find wget')
+    elif operatingSystem() == 'Windows':
+        wgetCommand = [which('wget'),'-b', '-N', '-o', 'NUL',
+                       '--no-check-certificate', link]
+
+    call(wgetCommand)
 
 
 def downloadImageGallery(link):
