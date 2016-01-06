@@ -30,10 +30,10 @@ def downloadImage(link):
         # --no-check-certificate is used because GnuWin wget fails to verify 
         #   all certificates for some reason
         call(['C:\\Program Files (x86)\\GnuWin32\\bin\\wget.exe', '-b',
-              '-N', '-o', 'spd.log', '--no-check-certificate', link])
+              '-N', '-o', 'NUL', '--no-check-certificate', link])
     else:
         # open wget in the background
-        call(['wget', '-b', '-N', '-o', 'spd.log', link])
+        call(['wget', '-b', '-N', '-o', '/dev/null', link])
 
 
 def downloadImageGallery(link):
@@ -69,6 +69,7 @@ def getAllImages(webpage):
             "i\\.imgur\\.com/[a-zA-Z0-9]{7}\\.(?:[a-z]{3,4})(?:\?[0-9]+?)?))",
             webpage):
         link = link.replace('http:', 'https:')
+        link = link.replace('.gifv', '.gif')  # fix handling of gifv links
         if isGallery(link):
             downloadImageGallery(link)
         else:
@@ -88,7 +89,7 @@ def pageGetNextPage(webpage, userName):
 
 userName = sys.argv[1]
 if len(sys.argv) > 2:
-    basePath = sys.argv[2]
+    basePath = os.path.expanduser(sys.argv[2])
 else:
     basePath = os.path.expanduser("~/Pictures/SPD/")
 
