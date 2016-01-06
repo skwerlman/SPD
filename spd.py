@@ -68,7 +68,8 @@ def getAllImages(webpage):
             'imgur\\.com/(?:[a-zA-Z0-9]{7}|[a-zA-Z0-9]{5})|' +
             'imgur\\.com/a/[a-zA-Z0-9]{5}|' +
             'imgur\\.com/gallery/[a-zA-Z0-9]{5}|' +
-            'i\\.imgur\\.com/(?:[a-zA-Z0-9]{7}|[a-zA-Z0-9]{5})\\.(?:[a-z]{3,4})(?:\?[0-9]+?)?))',
+            'i\\.imgur\\.com/(?:[a-zA-Z0-9]{7}|' +
+            '[a-zA-Z0-9]{5})\\.(?:[a-z]{3,4})(?:\?[0-9]+?)?))',
             webpage):
         link = link.replace('http:', 'https:')
         link = link.replace('.gifv', '.gif')  # fix handling of gifv links
