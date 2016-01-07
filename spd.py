@@ -7,6 +7,7 @@ import sys
 from platform import system as operatingSystem
 from subprocess import call
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 from shutil import which
 
 
@@ -17,10 +18,19 @@ def getWebPage(url):
     # Send the request and read the webpage from the response
     # Convert the webpage from bytes to a string, and return it
     # #
-    print('getting: '+url)
+    print('getting: ' + url)
     h = Request(url)
     h.add_header('User-Agent', 'SPD/1.0')
-    webpage = urlopen(h).read()
+    try:
+        webpage = urlopen(h).read()
+    except HTTPError as e:
+        print('WARNING: A problem occured when getting ' + url)
+        if e.code == 404:
+            message = 'The requested page could not be found'
+        else:
+            message = 'The server returned a code of ' + str(e.code)
+        print('WARNING: ' + message)
+        webpage = ''  # make sure we still pass a valid value
     return str(webpage)  # convert from bytes to string
 
 
