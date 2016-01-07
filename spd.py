@@ -60,7 +60,7 @@ def downloadImage(link):
         else:
             raise FileNotFoundError('Could not find wget')
     elif operatingSystem() == 'Windows':
-        wgetCommand = [which('wget'),'-b', '-N', '-o', 'NUL',
+        wgetCommand = [which('wget'), '-b', '-N', '-o', 'NUL',
                        '--no-check-certificate', link]
 
     call(wgetCommand)
