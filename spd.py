@@ -175,7 +175,8 @@ def t_or_f(arg):
 parser = ArgumentParser(
     description='SPD: Download every image a redditor ' +
                 'has submitted (ever)',
-    formatter_class=ArgumentDefaultsHelpFormatter)
+    formatter_class=ArgumentDefaultsHelpFormatter,
+    usage='%(prog)s [options] userName')
 
 winArgGroup = parser.add_argument_group(
     title='Windows arguments',
