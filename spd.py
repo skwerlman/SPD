@@ -5,10 +5,12 @@ import re
 import sys
 
 from platform import system as operatingSystem
-from subprocess import call
-from urllib.request import Request, urlopen
-from urllib.error import HTTPError
+
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from shutil import which
+from subprocess import call
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen
 
 
 def getWebPage(url):
@@ -18,6 +20,7 @@ def getWebPage(url):
     # Send the request and read the webpage from the response
     # Convert the webpage from bytes to a string, and return it
     # #
+    url = cleanLink(url, args)
     print('getting: ' + url)
     h = Request(url)
     h.add_header('User-Agent', 'SPD/1.0')
@@ -34,16 +37,14 @@ def getWebPage(url):
     return str(webpage)  # convert from bytes to string
 
 
-def getSubmittedPage(userName):
+def getSubmittedPage(args):
     # #
     # Returns the user's submitted page as a string
     # #
-    return getWebPage('https://www.reddit.com/user/' +
-                      userName +
-                      '/submitted/')
+    return getWebPage(args.submitted_page_pattern.format(args.userName))
 
 
-def downloadImage(link):
+def downloadImage(link, args):
     # #
     # Let the user know we are trying to download an image at the given link
     # Prepare the command (wget) to download the image
@@ -59,9 +60,11 @@ def downloadImage(link):
     # --no-check-certificate is used on windows because GnuWin wget fails to
     #   verify all certificates for some reason
 
+    link = cleanLink(link, args)
+
     print('downloading: ' + link)
     wgetCommand = [which('wget'), '-b', '-N', '-o', '/dev/null', link]
-    if which('wget') is None:
+    if (not args.skip_gnuwin_wget) and (which('wget') is None):
         if operatingSystem() == 'Windows' and os.path.isfile(
                 'C:\\Program Files (x86)\\GnuWin32\\bin\\wget.exe'):
             wgetCommand = ['C:\\Program Files (x86)\\GnuWin32\\bin\\wget.exe',
@@ -76,7 +79,7 @@ def downloadImage(link):
     call(wgetCommand)
 
 
-def downloadImageGallery(link):
+def downloadImageGallery(link, args):
     # #
     # Fetch the HTML page at the given link
     # If it's a gfycat link, alter the url to point at the gif and download it
@@ -84,68 +87,67 @@ def downloadImageGallery(link):
     # #
     webpage = getWebPage(link)
     if re.search(r'gfycat\.com/', link):
-        link = link.replace('gfycat', 'giant.gfycat') + '.gif'
-        downloadImage(link)
+        if not re.search(r'\.gif', link):
+            link = link.replace('gfycat', 'giant.gfycat') + '.gif'
+        downloadImage(link, args)
     elif re.search(r'imgur\.com/', link):
         for image in re.findall(
-                'src="//(i\\.imgur\\.com/(?:[a-zA-Z0-9]{7}|' +
-                '[a-zA-Z0-9]{5})\\.(?:[a-z]{3,4})(?:\\?[0-9]+?)?)"',
+                args.imgur_gallery_image_regex,
                 webpage):
-            downloadImage(image)
+            downloadImage(image, args)
 
 
-def isGallery(link):
+def cleanLink(link, args):
+    if not re.match(r'https?://', link):
+        link = 'https://' + link
+    else:
+        link = link.replace('http://', 'https://')
+    if args.gifv_as_gif:
+        link = link.replace('.gifv', '.gif')
+    if args.webm_as_gif:
+        link = link.replace('.webm', '.gif')
+    return link
+
+
+def isGallery(link, args):
     # #
-    # Check if a link is either an '//imgur.com' or '//gfycat.com' link
+    # Check if a link is (by default) an '//imgur.com' or '//gfycat.com' link
     # If so, it's probably HTML so we return true
-    # Otherwise, it's a link to an image ('//i.imgur.com'), so we return false
+    # Otherwise, it's a link to an image (e.g. '//i.imgur.com'),
+    #   so we return false
     # #
-    if re.match(r'https://(?:imgur\.com/|gfycat\.com/)', link):
+    if re.match(args.gallery_regex, link):
         return True
     return False
 
 
-def getAllImages(webpage):
+def getAllImages(webpage, args):
     # #
     # Find all submitted image links in a page
     # For each one, clean up the link and check if it's a gallery (HTML)
     # If it is, find each relevant image on the page and download it
     # Otherwise, download it directly
     # #
-    for link in re.findall(
-            '<a class="title may-blank ?" href="(https?://' +
-            '(?:gfycat\\.com/[a-zA-Z]+|' +
-            'imgur\\.com/(?:[a-zA-Z0-9]{7}|[a-zA-Z0-9]{5})|' +
-            'imgur\\.com/a/[a-zA-Z0-9]{5}|' +
-            'imgur\\.com/gallery/[a-zA-Z0-9]{5}|' +
-            'i\\.imgur\\.com/(?:[a-zA-Z0-9]{7}|' +
-            '[a-zA-Z0-9]{5})\\.(?:[a-z]{3,4})(?:\\?[0-9]+?)?))',
-            webpage):
+    for link in re.findall(args.image_link_regex, webpage):
 
         print('')
 
-        if not re.match(r'https?://', link):
-            link = 'https://' + link
+        link = cleanLink(link, args)
+
+        if isGallery(link, args):
+            downloadImageGallery(link, args)
         else:
-            link = link.replace('http://', 'https://')
-        link = link.replace('.gifv', '.gif')  # fix handling of gifv links
-
-        if isGallery(link):
-            downloadImageGallery(link)
-        else:
-            downloadImage(link)
+            downloadImage(link, args)
 
 
-def pageGetNextPage(webpage, userName):
+def pageGetNextPage(webpage, args):
     # #
     # Find the link to the next page, if it exists
     # If it does, download and return the page
     # Otherwise, return None explicitly
     # #
     nextPage = re.findall(
-        '(https?://www\\.reddit\\.com/user/' +
-        userName +
-        '/submitted/\\?count=[0-9]{2,4}&amp;after=t[0-9]_[a-z0-9]{6})',
+        args.next_page_regex.format(args.userName),
         webpage)
 
     if not nextPage == []:
@@ -153,28 +155,149 @@ def pageGetNextPage(webpage, userName):
     else:
         return None
 
+
 # -----------------------------------------------------------------------------
 
-userName = sys.argv[1]
 
-# if user provided a download dir, use that instead of the default
-if len(sys.argv) > 2:
-    basePath = os.path.expanduser(sys.argv[2]) + '/'
-else:
-    basePath = os.path.expanduser('~/Pictures/SPD/')
+parser = ArgumentParser(
+    description='SPD: Download every image a redditor ' +
+                'has submitted (ever)',
+    formatter_class=ArgumentDefaultsHelpFormatter)
+
+winArgGroup = parser.add_argument_group(
+    title='Windows arguments',
+    description='These options do nothing outside of Windows.')
+
+advArgGroup = parser.add_argument_group(
+    title='advanced arguments',
+    description='These options change how SPD reads a webpage. ' +
+    'They require intimate knowledge of the pages you are searching. ' +
+    'Use caution with these!')
+
+# positional args
+parser.add_argument(
+    'userName',
+    type=str,
+    help='The name of the redditor whose images ' +
+         'you\'d like to download')
+
+# optional args
+parser.add_argument(
+    '-d',
+    type=str,
+    help='The directory to save the images in. ' +
+         '<userName> is appended to this value.',
+    default='~/Pictures/SPD',
+    dest='directory')
+
+parser.add_argument(
+    '-r', '--recursive',
+    help='',  # Lack of help is intentional; see -n
+    action='store_true',
+    default=True,
+    dest='recursive')
+
+parser.add_argument(
+    '-n', '--no-recursive',
+    help='Sets whether SPD should iterate over all of the user\'s ' +
+         'submitted pages, or just parse the fist one. ' +
+         'If more than one of -n or -r is specified, ' +
+         'the last one will take effect.',
+    action='store_false',
+    default=True,
+    dest='recursive')
+
+parser.add_argument(
+    '-G', '--gifv-as-gif',
+    choices=[True, False],
+    type=bool,
+    help='Whether to download GIFV files on Imgur as GIFs.',
+    default=True)
+
+parser.add_argument(
+    '-W', '--webm-as-gif',
+    choices=[True, False],
+    type=bool,
+    help='Whether to download WEBM files on Imgur as GIFs.',
+    default=True)
+
+# Windows args
+winArgGroup.add_argument(
+    '--skip-gnuwin-wget',
+    help='Skips looking for GnuWin wget if wget is ' +
+         'not in %%PATH%%.',
+    action='store_true',
+    default=False)
+
+# advanced args
+advArgGroup.add_argument(
+    '--gallery-regex',
+    type=str,
+    help='Sets a custom regex for testing if a link is a gallery.',
+    default=r'https://(?:imgur\.com/|gfycat\.com/)',
+    metavar='REGEX')
+
+advArgGroup.add_argument(
+    '--imgur-gallery-image-regex',
+    type=str,
+    help='Sets a custom regex for finding all images in an Imgur gallery.',
+    default='src="//(i\\.imgur\\.com/(?:[a-zA-Z0-9]{7}|' +
+            '[a-zA-Z0-9]{5})\\.(?:[a-z]{3,4})(?:\\?[0-9]+?)?)"',
+    metavar='REGEX')
+
+advArgGroup.add_argument(
+    '--image-link-regex',
+    type=str,
+    help='Sets a custom regex for finding all images on the user\'s ' +
+         'submitted page',
+    default='<a class="title may-blank ?" href="(https?://' +
+            '(?:gfycat\\.com/[a-zA-Z]+?|' +
+            'giant\\.gfycat\\.com/[a-zA-Z]+?\\.gif|' +
+            'imgur\\.com/(?:[a-zA-Z0-9]{7}|[a-zA-Z0-9]{5})|' +
+            'imgur\\.com/a/[a-zA-Z0-9]{5}|' +
+            'imgur\\.com/gallery/[a-zA-Z0-9]{5}|' +
+            'i\\.imgur\\.com/(?:[a-zA-Z0-9]{7}|' +
+            '[a-zA-Z0-9]{5})\\.(?:[a-z]{3,4})(?:\\?[0-9]+?)?))"',
+    metavar='REGEX')
+
+advArgGroup.add_argument(
+    '--next-page-regex',
+    type=str,
+    help='Sets the regex used to find the URL for the next page. ' +
+         'The first \'{!s}\' is replaced by the user\'s name. ' +
+         'All other {\'s and }\'s should be doubled up. ' +
+         'See https://docs.python.org/3/library/string.html#formatspec',
+    default='https?://www\\.reddit\\.com/user/{!s}' +
+            '/submitted/\\?count=[0-9]{{2,4}}&amp;after=t[0-9]_[a-z0-9]{{6}}',
+    metavar='REGEX')
+
+advArgGroup.add_argument(
+    '--submitted-page-pattern',
+    type=str,
+    help='Sets the pattern used to construct the link to the user\'s ' +
+         'submitted page. ' +
+         'The first \'{!s}\' is replaced by the user\'s name.',
+    default='https://www.reddit.com/user/{!s}/submitted/',
+    metavar='PATTERN')
+
+args = parser.parse_args()
+
+userName = args.userName
+downloadDirectory = os.path.expanduser(args.directory + '/' + userName)
 
 # make sure the download directory exists, then change to it
-if not os.path.exists(basePath + userName):
-    os.makedirs(basePath + userName)
-os.chdir(basePath + userName)
+if not os.path.exists(downloadDirectory):
+    os.makedirs(downloadDirectory)
+os.chdir(downloadDirectory)
 
 # Download all images from the first page
-userSubmitted = getSubmittedPage(userName)
-getAllImages(userSubmitted)
+userSubmitted = getSubmittedPage(args)
+getAllImages(userSubmitted, args)
 
-while True:  # Loop until we can't find a next page link
-    userSubmitted = pageGetNextPage(userSubmitted, userName)
-    if userSubmitted is None:
-        break
+if args.recursive:  # misnomer
+    while True:  # Loop until we can't find a next page link
+        userSubmitted = pageGetNextPage(userSubmitted, args)
+        if userSubmitted is None:
+            break
 
-    getAllImages(userSubmitted)
+        getAllImages(userSubmitted, args)
