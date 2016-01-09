@@ -156,6 +156,17 @@ def pageGetNextPage(webpage, args):
         return None
 
 
+def t_or_f(arg):
+    # handle 'bool' args
+    ua = str(arg)
+    if ua == 'True':
+        return True
+    elif ua == 'False':
+        return False
+    else:
+        return ua
+
+
 # -----------------------------------------------------------------------------
 
 
@@ -210,14 +221,14 @@ parser.add_argument(
 parser.add_argument(
     '-G', '--gifv-as-gif',
     choices=[True, False],
-    type=bool,
+    type=t_or_f,
     help='Whether to download GIFV files on Imgur as GIFs.',
     default=True)
 
 parser.add_argument(
     '-W', '--webm-as-gif',
     choices=[True, False],
-    type=bool,
+    type=t_or_f,
     help='Whether to download WEBM files on Imgur as GIFs.',
     default=True)
 
