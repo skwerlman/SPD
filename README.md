@@ -9,14 +9,14 @@ Let me know if you need it to work with another site.
 
 #### USAGE
 ```
-./spd.py <redditor name> [download directory]
+./spd.py [options] userName
 ```
 
 #### NOTES
 
 You need to have `wget` installed and in your path for this to work.
 
-On Windows, you need to have GnuWin `wget` installed to `C:\Program Files (x86)\GnuWin32\bin\wget.exe` (the default)  
+On Windows, you need to have GnuWin `wget` on your path or installed to `C:\Program Files (x86)\GnuWin32\bin\wget.exe` (the default)  
 You can get it here: http://gnuwin32.sourceforge.net/packages/wget.htm
 
 If SPD downloads an html document by accident, let me know so I can fix it.
