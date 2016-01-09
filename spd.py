@@ -106,6 +106,8 @@ def cleanLink(link, args):
         link = link.replace('.gifv', '.gif')
     if args.webm_as_gif:
         link = link.replace('.webm', '.gif')
+    if args.clean_imgur_links:
+        link = link.replace('?1', '')
     return link
 
 
@@ -230,6 +232,13 @@ parser.add_argument(
     choices=[True, False],
     type=t_or_f,
     help='Whether to download WEBM files on Imgur as GIFs.',
+    default=True)
+
+parser.add_argument(
+    '-C', '--clean-imgur-links',
+    choices=[True, False],
+    type=t_or_f,
+    help='Whether to strip the \'?1\' from the end of Imgur links.',
     default=True)
 
 # Windows args
