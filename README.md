@@ -7,6 +7,39 @@ Currently only works with images uploaded to [imgur](//imgur.com) or [gfycat](//
 
 Let me know if you need it to work with another site.
 
+#### INSTALLATION
+
+##### Windows
+  1.  Download the Python 3 installer: https://www.python.org/downloads/
+  2.  Run the installer and follow the on-screen instructions.
+  3.  Re-run the installer. Select 'Modify'. Check the 'Add Python environment variables' box.
+  4.  Download the `wget` installer: http://gnuwin32.sourceforge.net/packages/wget.htm
+  5.  Run the installer and follow the on-screen instructions. Don't modify the install location.
+  6.  Download the SPD source zip: https://github.com/skwerlman/SPD/archive/master.zip
+  7.  Extract the zip.
+
+To run:
+  1.  Open Command Prompt.
+  2.  `cd <place where you extracted the zip to>`
+  3.  `python spd.py [options] userName`
+
+##### Ubuntu (or other Debian)
+  1.  `$ sudo apt-get update && sudo apt-get install python3 git wget`
+  2.  `$ cd ~ && git clone https://github.com/skwerlman/SPD.git`
+
+To run:
+  1. Press <kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>T</kbd> to open a terminal
+  2. `$ cd ~/SPD`
+  3. `$ ./spd.py [options] userName`
+
+##### Sabayon
+  1.  `# equo up && equo i -av python3 git wget`
+  2.  `$ cd ~ && git clone https://github.com/skwerlman/SPD.git`
+
+To run:
+  1. `$ cd ~/SPD`
+  2. `$ ./spd.py [options] userName`
+
 #### USAGE
 ```
 ./spd.py [options] userName
