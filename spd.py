@@ -31,12 +31,12 @@ def getWebPage(url):
     try:
         webpage = urlopen(h).read()
     except HTTPError as e:
-        print('WARNING: A problem occured when getting ' + url)
+        print('warning: a problem occured when getting ' + url)
         if e.code == 404:
-            message = 'The requested page could not be found'
+            message = 'the requested page could not be found'
         else:
-            message = 'The server returned a code of ' + str(e.code)
-        print('WARNING: ' + message)
+            message = 'the server returned a code of ' + str(e.code)
+        print('warning: ' + message)
         webpage = ''  # make sure we still pass a valid value
     return str(webpage)  # convert from bytes to string
 
@@ -112,6 +112,10 @@ def cleanLink(link, args):
         link = link.replace('.webm', '.gif')
     if args.clean_imgur_links:
         link = link.replace('?1', '')
+    if args.imgur_force_grid:
+        if re.search(r'[a-zA-Z0-9]{7}[bs]\.', link):
+            link = link.replace('b.', '.')
+            link = link.replace('s.', '.')
     return link
 
 
@@ -141,6 +145,10 @@ def getAllImages(webpage, args):
         link = cleanLink(link, args)
 
         if isGallery(link, args):
+            if re.search(r'imgur\.com', link):
+                    if args.imgur_force_grid:
+                        if not re.search(r'/layout/grid/?$', link):
+                            link = link + '/layout/grid'
             downloadImageGallery(link, args)
         else:
             downloadImage(link, args)
@@ -182,7 +190,14 @@ def actionDownloadImgurGallery(args):
             args.gallery):
         raise ArgumentException(
             "GALLERY should be a valid Imgur URL without 'imgur.com/'")
-    downloadImageGallery('https://imgur.com/' + args.gallery, args)
+
+    url = 'https://imgur.com/' + args.gallery
+
+    if args.imgur_force_grid:
+        if not re.search(r'/layout/grid/?$', url):
+            url = url + '/layout/grid'
+
+    downloadImageGallery(url, args)
 
 
 def t_or_f(arg):
@@ -199,12 +214,11 @@ def t_or_f(arg):
 def is_gal(arg):
     # handle gallery args
     ua = str(arg)
-    if re.match(
+    if not re.match(
             r"^(?:a/|gallery/|)(?:[a-zA-Z0-9]{5}|[a-zA-Z0-9]{7})$",
             arg):
-        return ua
-    else:
-        return None
+        parser.error('invalid GALLERY')
+    return ua
 
 
 def is_uname(arg):
@@ -213,7 +227,7 @@ def is_uname(arg):
     if re.match(
             r"^(?:a/|gallery/)(?:[a-zA-Z0-9]{5}|[a-zA-Z0-9]{7})$",
             arg):
-        print("warning: potentially bad userName")
+        parser.error('invalid USERNAME')
     return ua
 
 
@@ -279,6 +293,13 @@ parser.add_argument(
     dest='recursive')
 
 parser.add_argument(
+    '-D', '--imgur-force-grid',
+    choices=[True, False],
+    type=t_or_f,
+    help='Whether to use the grid layout when looking at a gallery.',
+    default=True)
+
+parser.add_argument(
     '-G', '--gifv-as-gif',
     choices=[True, False],
     type=t_or_f,
@@ -318,24 +339,34 @@ advArgGroup.add_argument(
 advArgGroup.add_argument(
     '--imgur-gallery-image-regex',
     type=str,
-    help='Sets a custom regex for finding all images in an Imgur gallery.',
+    help='Sets a custom regex for finding all images in an Imgur gallery. ' +
+         '(original layout)',
     default='src="//(i\\.imgur\\.com/(?:[a-zA-Z0-9]{7}|' +
             '[a-zA-Z0-9]{5})\\.(?:[a-z]{3,4})(?:\\?[0-9]+?)?)"',
+    metavar='REGEX')
+
+advArgGroup.add_argument(
+    '--imgur-grid-image-regex',
+    type=str,
+    help='Sets a custom regex for finding all images in an Imgur gallery. ' +
+         '(grid layout)',
+    default='data-src="//(i\\.imgur\\.com/[a-zA-Z0-9]{8}' +
+            '\\.(?:[a-z]{3,4})(?:\\?[0-9]+?)?)"',
     metavar='REGEX')
 
 advArgGroup.add_argument(
     '--image-link-regex',
     type=str,
     help='Sets a custom regex for finding all images on the user\'s ' +
-         'submitted page',
+         'submitted page.',
     default='<a class="title may-blank ?" href="(https?://' +
             '(?:gfycat\\.com/[a-zA-Z]+?|' +
             'giant\\.gfycat\\.com/[a-zA-Z]+?\\.gif|' +
             'imgur\\.com/(?:[a-zA-Z0-9]{7}|[a-zA-Z0-9]{5})|' +
             'imgur\\.com/a/[a-zA-Z0-9]{5}|' +
             'imgur\\.com/gallery/[a-zA-Z0-9]{5}|' +
-            'i\\.imgur\\.com/(?:[a-zA-Z0-9]{7}|' +
-            '[a-zA-Z0-9]{5})\\.(?:[a-z]{3,4})(?:\\?[0-9]+?)?))"',
+            'i\\.imgur\\.com/(?:[a-zA-Z0-9]{7}|[a-zA-Z0-9]{5})' +
+            '\\.(?:[a-z]{3,4})(?:\\?[0-9]+?)?))"',
     metavar='REGEX')
 
 advArgGroup.add_argument(
