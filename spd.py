@@ -13,6 +13,10 @@ from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 
+class ArgumentException(Exception):
+    pass
+
+
 def getWebPage(url):
     # #
     # Let the user know we are trying to download a webpage
@@ -158,6 +162,29 @@ def pageGetNextPage(webpage, args):
         return None
 
 
+def actionDownloadSubmittedImages(args):
+    # Download all images from the first page
+    userSubmitted = getSubmittedPage(args)
+    getAllImages(userSubmitted, args)
+
+    if args.recursive:  # misnomer
+        while True:  # Loop until we can't find a next page link
+            userSubmitted = pageGetNextPage(userSubmitted, args)
+            if userSubmitted is None:
+                break
+
+            getAllImages(userSubmitted, args)
+
+
+def actionDownloadImgurGallery(args):
+    if not re.match(
+            r"^(?:a/|gallery/|)(?:[a-zA-Z0-9]{5}|[a-zA-Z0-9]{7})$",
+            args.gallery):
+        raise ArgumentException(
+            "GALLERY should be a valid Imgur URL without 'imgur.com/'")
+    downloadImageGallery('https://imgur.com/' + args.gallery, args)
+
+
 def t_or_f(arg):
     # handle 'bool' args
     ua = str(arg)
@@ -169,14 +196,37 @@ def t_or_f(arg):
         return ua
 
 
+def is_gal(arg):
+    # handle gallery args
+    ua = str(arg)
+    if re.match(
+            r"^(?:a/|gallery/|)(?:[a-zA-Z0-9]{5}|[a-zA-Z0-9]{7})$",
+            arg):
+        return ua
+    else:
+        return None
+
+
+def is_uname(arg):
+    # handle username args
+    ua = str(arg)
+    if re.match(
+            r"^(?:a/|gallery/)(?:[a-zA-Z0-9]{5}|[a-zA-Z0-9]{7})$",
+            arg):
+        print("warning: potentially bad userName")
+    return ua
+
+
 # -----------------------------------------------------------------------------
 
 
 parser = ArgumentParser(
     description='SPD: Download every image a redditor ' +
                 'has submitted (ever)',
-    formatter_class=ArgumentDefaultsHelpFormatter,
-    usage='%(prog)s [options] userName')
+    usage='%(prog)s [options] ( USERNAME | -g GALLERY )',
+    formatter_class=ArgumentDefaultsHelpFormatter)
+
+positionalGroup = parser.add_mutually_exclusive_group(required=True)
 
 winArgGroup = parser.add_argument_group(
     title='Windows arguments',
@@ -189,11 +239,18 @@ advArgGroup = parser.add_argument_group(
     'Use caution with these!')
 
 # positional args
-parser.add_argument(
+positionalGroup.add_argument(
     'userName',
-    type=str,
+    type=is_uname,
+    nargs='?',
     help='The name of the redditor whose images ' +
          'you\'d like to download')
+
+positionalGroup.add_argument(
+    '-g', '--gallery',
+    type=is_gal,
+    help='The URL to the Imgur gallery you\'d like to download, ' + 
+         'minus \'https://imgur.com/\'')
 
 # optional args
 parser.add_argument(
@@ -303,22 +360,17 @@ advArgGroup.add_argument(
 
 args = parser.parse_args()
 
-userName = args.userName
-downloadDirectory = os.path.expanduser(args.directory + '/' + userName)
+if args.userName:
+    downloadDirectory = os.path.expanduser(args.directory + '/' + args.userName)
+elif args.gallery:
+    downloadDirectory = os.path.expanduser(args.directory + '/gallery/' + args.gallery)
 
 # make sure the download directory exists, then change to it
 if not os.path.exists(downloadDirectory):
     os.makedirs(downloadDirectory)
 os.chdir(downloadDirectory)
 
-# Download all images from the first page
-userSubmitted = getSubmittedPage(args)
-getAllImages(userSubmitted, args)
-
-if args.recursive:  # misnomer
-    while True:  # Loop until we can't find a next page link
-        userSubmitted = pageGetNextPage(userSubmitted, args)
-        if userSubmitted is None:
-            break
-
-        getAllImages(userSubmitted, args)
+if args.userName:
+    actionDownloadSubmittedImages(args)
+elif args.gallery:
+    actionDownloadImgurGallery(args)
