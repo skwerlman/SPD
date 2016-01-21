@@ -95,10 +95,18 @@ def downloadImageGallery(link, args):
             link = link.replace('gfycat', 'giant.gfycat') + '.gif'
         downloadImage(link, args)
     elif re.search(r'imgur\.com/', link):
-        for image in re.findall(
-                args.imgur_gallery_image_regex,
-                webpage):
-            downloadImage(image, args)
+        if webpage == '' and re.search(r'layout/grid', link):
+            print('grid layout not found, trying again')
+            webpage = getWebPage(link.replace('/layout/grid', ''))
+            for image in re.findall(
+                    args.imgur_gallery_image_regex,
+                    webpage):
+                downloadImage(image, args)
+        else:
+            for image in re.findall(
+                    args.imgur_grid_image_regex,
+                    webpage):
+                downloadImage(image, args)
 
 
 def cleanLink(link, args):
@@ -263,7 +271,7 @@ positionalGroup.add_argument(
 positionalGroup.add_argument(
     '-g', '--gallery',
     type=is_gal,
-    help='The URL to the Imgur gallery you\'d like to download, ' + 
+    help='The URL to the Imgur gallery you\'d like to download, ' +
          'minus \'https://imgur.com/\'')
 
 # optional args
@@ -392,9 +400,11 @@ advArgGroup.add_argument(
 args = parser.parse_args()
 
 if args.userName:
-    downloadDirectory = os.path.expanduser(args.directory + '/' + args.userName)
+    downloadDirectory = os.path.expanduser(args.directory +
+                                           '/' + args.userName)
 elif args.gallery:
-    downloadDirectory = os.path.expanduser(args.directory + '/gallery/' + args.gallery)
+    downloadDirectory = os.path.expanduser(args.directory +
+                                           '/gallery/' + args.gallery)
 
 # make sure the download directory exists, then change to it
 if not os.path.exists(downloadDirectory):
