@@ -3,6 +3,7 @@
 import os
 import re
 import sys
+import colorama
 
 from platform import system as operatingSystem
 
@@ -17,6 +18,44 @@ class ArgumentException(Exception):
     pass
 
 
+class Color:
+    reset          = "\033[0m"
+    fggreen        = "\033[32m"
+    fgblue         = "\033[34m"
+    fglightred     = "\033[91m"
+    fglightyellow  = "\033[93m"
+    fglightblue    = "\033[94m"
+    fgwhite        = "\033[97m"
+
+    def colorize(self, code, message):
+        return code + message + self.reset
+
+
+class Logger:
+    INFO = 1
+    WARNING = 4
+    ERROR = 8
+
+    color = Color()
+
+    def log(self, level, message):
+        code = ""
+        message = str(message)
+
+        if level == self.INFO:
+            code = self.color.fgwhite
+
+        elif level == self.WARNING:
+            code = self.color.fglightyellow
+            message = 'WARNING:   ' + message
+
+        elif level == self.ERROR:
+            code = self.color.fglightred
+            message = 'ERROR:   ' + message
+
+        print(self.color.colorize(code, message))
+
+
 def getWebPage(url):
     # #
     # Let the user know we are trying to download a webpage
@@ -25,18 +64,18 @@ def getWebPage(url):
     # Convert the webpage from bytes to a string, and return it
     # #
     url = cleanLink(url, args)
-    print('getting: ' + url)
+    log(logger.INFO, 'getting: ' + url)
     h = Request(url)
     h.add_header('User-Agent', 'SPD/1.0')
     try:
         webpage = urlopen(h).read()
     except HTTPError as e:
-        print('warning: a problem occured when getting ' + url)
+        log(logger.WARNING, 'a problem occured when getting ' + url)
         if e.code == 404:
             message = 'the requested page could not be found'
         else:
             message = 'the server returned a code of ' + str(e.code)
-        print('warning: ' + message)
+        log(logger.WARNING, message)
         webpage = ''  # make sure we still pass a valid value
     return str(webpage)  # convert from bytes to string
 
@@ -66,7 +105,7 @@ def downloadImage(link, args):
 
     link = cleanLink(link, args)
 
-    print('downloading: ' + link)
+    log(logger.INFO, 'downloading: ' + link)
     wgetCommand = [which('wget'), '-b', '-N', '-o', '/dev/null', link]
     if (not args.skip_gnuwin_wget) and (which('wget') is None):
         if operatingSystem() == 'Windows' and os.path.isfile(
@@ -75,6 +114,7 @@ def downloadImage(link, args):
                            '-b', '-N', '-o', 'NUL',
                            '--no-check-certificate', link]
         else:
+            print(logger.color.fglightred)
             raise FileNotFoundError('Could not find wget')
     elif operatingSystem() == 'Windows':
         wgetCommand = [which('wget'), '-b', '-N', '-o', 'NUL',
@@ -96,7 +136,7 @@ def downloadImageGallery(link, args):
         downloadImage(link, args)
     elif re.search(r'imgur\.com/', link):
         if webpage == '' and re.search(r'layout/grid', link):
-            print('grid layout not found, trying again')
+            log(logger.WARNING, 'grid layout not found, trying again')
             webpage = getWebPage(link.replace('/layout/grid', ''))
             for image in re.findall(
                     args.imgur_gallery_image_regex,
@@ -405,6 +445,10 @@ if args.userName:
 elif args.gallery:
     downloadDirectory = os.path.expanduser(args.directory +
                                            '/gallery/' + args.gallery)
+
+colorama.init()
+logger = Logger()
+log = logger.log
 
 # make sure the download directory exists, then change to it
 if not os.path.exists(downloadDirectory):
