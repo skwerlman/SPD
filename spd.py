@@ -4,6 +4,7 @@ import os
 import re
 import sys
 import colorama
+import time
 
 from platform import system as operatingSystem
 
@@ -19,13 +20,13 @@ class ArgumentException(Exception):
 
 
 class Color:
-    reset          = "\033[0m"
-    fggreen        = "\033[32m"
-    fgblue         = "\033[34m"
-    fglightred     = "\033[91m"
-    fglightyellow  = "\033[93m"
-    fglightblue    = "\033[94m"
-    fgwhite        = "\033[97m"
+    reset = "\033[0m"
+    fggreen = "\033[32m"
+    fgblue = "\033[34m"
+    fglightred = "\033[91m"
+    fglightyellow = "\033[93m"
+    fglightblue = "\033[94m"
+    fgwhite = "\033[97m"
 
     def colorize(self, code, message):
         return code + message + self.reset
@@ -120,6 +121,7 @@ def downloadImage(link, args):
         wgetCommand = [which('wget'), '-b', '-N', '-o', 'NUL',
                        '--no-check-certificate', link]
 
+    time.sleep(.05)
     call(wgetCommand)
 
 
