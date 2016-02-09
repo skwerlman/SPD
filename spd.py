@@ -15,8 +15,7 @@ from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 
-class ArgumentException(Exception):
-    pass
+class ArgumentException(Exception): pass
 
 
 class Color:
@@ -58,12 +57,12 @@ class Logger:
 
 
 def getWebPage(url):
-    # #
+    '''
     # Let the user know we are trying to download a webpage
     # Construct a request with a User-Agent header
     # Send the request and read the webpage from the response
     # Convert the webpage from bytes to a string, and return it
-    # #
+    '''
     url = cleanLink(url, args)
     log(logger.INFO, 'getting: ' + url)
     h = Request(url)
@@ -82,14 +81,14 @@ def getWebPage(url):
 
 
 def getSubmittedPage(args):
-    # #
+    '''
     # Returns the user's submitted page as a string
-    # #
+    '''
     return getWebPage(args.submitted_page_pattern.format(args.userName))
 
 
 def downloadImage(link, args):
-    # #
+    '''
     # Let the user know we are trying to download an image at the given link
     # Prepare the command (wget) to download the image
     # If wget doesn't exist, and we're on Windows, check whether GnuWin wget
@@ -99,7 +98,7 @@ def downloadImage(link, args):
     # Otherwise, if we're on Windows, modify the wget command to avoid an issue
     #     with GnuWin wget and SSL
     # Finally, we run the constructed command to download the image
-    # #
+    '''
 
     # --no-check-certificate is used on windows because GnuWin wget fails to
     #   verify all certificates for some reason
@@ -126,11 +125,11 @@ def downloadImage(link, args):
 
 
 def downloadImageGallery(link, args):
-    # #
+    '''
     # Fetch the HTML page at the given link
     # If it's a gfycat link, alter the url to point at the gif and download it
     # Otherwise, find all '//i.imgur.com' links and download each one
-    # #
+    '''
     webpage = getWebPage(link)
     if re.search(r'gfycat\.com/', link):
         if not re.search(r'\.gif', link):
@@ -170,24 +169,24 @@ def cleanLink(link, args):
 
 
 def isGallery(link, args):
-    # #
+    '''
     # Check if a link is (by default) an '//imgur.com' or '//gfycat.com' link
     # If so, it's probably HTML so we return true
     # Otherwise, it's a link to an image (e.g. '//i.imgur.com'),
     #   so we return false
-    # #
+    '''
     if re.match(args.gallery_regex, link):
         return True
     return False
 
 
 def getAllImages(webpage, args):
-    # #
+    '''
     # Find all submitted image links in a page
     # For each one, clean up the link and check if it's a gallery (HTML)
     # If it is, find each relevant image on the page and download it
     # Otherwise, download it directly
-    # #
+    '''
     for link in re.findall(args.image_link_regex, webpage):
 
         print('')
@@ -205,11 +204,11 @@ def getAllImages(webpage, args):
 
 
 def pageGetNextPage(webpage, args):
-    # #
+    '''
     # Find the link to the next page, if it exists
     # If it does, download and return the page
     # Otherwise, return None explicitly
-    # #
+    '''
     nextPage = re.findall(
         args.next_page_regex.format(args.userName),
         webpage)
