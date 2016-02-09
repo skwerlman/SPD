@@ -246,6 +246,10 @@ def actionDownloadImgurGallery(args):
         if not re.search(r'/layout/grid/?$', url):
             url = url + '/layout/grid'
 
+    if args.force_album:
+        if re.search(r'/gallery/', url):
+            url = url.replace('/gallery/', '/a/')
+
     downloadImageGallery(url, args)
 
 
@@ -316,6 +320,13 @@ positionalGroup.add_argument(
          'minus \'https://imgur.com/\'')
 
 # optional args
+parser.add_argument(
+    '-a', '--force-album',
+    help='Replace "/gallery/" with "/a/". ' +
+         'Can be useful when galleries do not have a grid layout',
+    action='store_true',
+    default=False)
+
 parser.add_argument(
     '-d',
     type=str,
