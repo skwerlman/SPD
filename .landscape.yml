@@ -1,0 +1,5 @@
+doc-warnings: true
+strictness: veryhigh
+autodetect: yes
+python-targets:
+    - 3
