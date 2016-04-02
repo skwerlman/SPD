@@ -2,7 +2,6 @@
 
 import os
 import re
-import sys
 import colorama
 import time
 
@@ -18,7 +17,10 @@ from urllib.request import Request, urlopen
 class ArgumentException(Exception): pass
 
 
-class Color:
+class WGetNotFoundException(Exception): pass
+
+
+class Color(object):
     reset = "\033[0m"
     fggreen = "\033[32m"
     fgblue = "\033[34m"
@@ -31,7 +33,7 @@ class Color:
         return code + message + self.reset
 
 
-class Logger:
+class Logger(object):
     INFO = 1
     WARNING = 4
     ERROR = 8
@@ -115,7 +117,7 @@ def downloadImage(link, args):
                            '--no-check-certificate', link]
         else:
             print(logger.color.fglightred)
-            raise FileNotFoundError('Could not find wget')
+            raise WGetNotFoundException('Could not find wget')
     elif operatingSystem() == 'Windows':
         wgetCommand = [which('wget'), '-b', '-N', '-o', 'NUL',
                        '--no-check-certificate', link]
@@ -195,9 +197,9 @@ def getAllImages(webpage, args):
 
         if isGallery(link, args):
             if re.search(r'imgur\.com', link):
-                    if args.imgur_force_grid:
-                        if not re.search(r'/layout/grid/?$', link):
-                            link = link + '/layout/grid'
+                if args.imgur_force_grid:
+                    if not re.search(r'/layout/grid/?$', link):
+                        link = link + '/layout/grid'
             downloadImageGallery(link, args)
         else:
             downloadImage(link, args)
