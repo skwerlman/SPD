@@ -5,7 +5,7 @@ import re
 import colorama
 import time
 
-from platform import system as operatingSystem
+from platform import system as operating_system
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from shutil import which
@@ -14,10 +14,12 @@ from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 
-class ArgumentException(Exception): pass
+class ArgumentException(Exception):
+    pass
 
 
-class WGetNotFoundException(Exception): pass
+class WGetNotFoundException(Exception):
+    pass
 
 
 class Color(object):
@@ -58,38 +60,38 @@ class Logger(object):
         print(self.color.colorize(code, message))
 
 
-def getWebPage(url):
+def get_web_page(url):
     '''
     # Let the user know we are trying to download a webpage
     # Construct a request with a User-Agent header
     # Send the request and read the webpage from the response
     # Convert the webpage from bytes to a string, and return it
     '''
-    url = cleanLink(url, args)
+    url = clean_link(url, args)
     log(logger.INFO, 'getting: ' + url)
-    h = Request(url)
-    h.add_header('User-Agent', 'SPD/1.0')
+    handle = Request(url)
+    handle.add_header('User-Agent', 'SPD/1.0')
     try:
-        webpage = urlopen(h).read()
-    except HTTPError as e:
+        webpage = urlopen(handle).read()
+    except HTTPError as err:
         log(logger.WARNING, 'a problem occured when getting ' + url)
-        if e.code == 404:
+        if err.code == 404:
             message = 'the requested page could not be found'
         else:
-            message = 'the server returned a code of ' + str(e.code)
+            message = 'the server returned a code of ' + str(err.code)
         log(logger.WARNING, message)
         webpage = ''  # make sure we still pass a valid value
     return str(webpage)  # convert from bytes to string
 
 
-def getSubmittedPage(args):
+def get_submitted_page(args):
     '''
     # Returns the user's submitted page as a string
     '''
-    return getWebPage(args.submitted_page_pattern.format(args.userName))
+    return get_web_page(args.submitted_page_pattern.format(args.userName))
 
 
-def downloadImage(link, args):
+def download_image(link, args):
     '''
     # Let the user know we are trying to download an image at the given link
     # Prepare the command (wget) to download the image
@@ -105,12 +107,12 @@ def downloadImage(link, args):
     # --no-check-certificate is used on windows because GnuWin wget fails to
     #   verify all certificates for some reason
 
-    link = cleanLink(link, args)
+    link = clean_link(link, args)
 
     log(logger.INFO, 'downloading: ' + link)
     wgetCommand = [which('wget'), '-b', '-N', '-o', '/dev/null', link]
     if (not args.skip_gnuwin_wget) and (which('wget') is None):
-        if operatingSystem() == 'Windows' and os.path.isfile(
+        if operating_system() == 'Windows' and os.path.isfile(
                 'C:\\Program Files (x86)\\GnuWin32\\bin\\wget.exe'):
             wgetCommand = ['C:\\Program Files (x86)\\GnuWin32\\bin\\wget.exe',
                            '-b', '-N', '-o', 'NUL',
@@ -118,7 +120,7 @@ def downloadImage(link, args):
         else:
             print(logger.color.fglightred)
             raise WGetNotFoundException('Could not find wget')
-    elif operatingSystem() == 'Windows':
+    elif operating_system() == 'Windows':
         wgetCommand = [which('wget'), '-b', '-N', '-o', 'NUL',
                        '--no-check-certificate', link]
 
@@ -126,33 +128,33 @@ def downloadImage(link, args):
     call(wgetCommand)
 
 
-def downloadImageGallery(link, args):
+def download_image_gallery(link, args):
     '''
     # Fetch the HTML page at the given link
     # If it's a gfycat link, alter the url to point at the gif and download it
     # Otherwise, find all '//i.imgur.com' links and download each one
     '''
-    webpage = getWebPage(link)
+    webpage = get_web_page(link)
     if re.search(r'gfycat\.com/', link):
         if not re.search(r'\.gif', link):
             link = link.replace('gfycat', 'giant.gfycat') + '.gif'
-        downloadImage(link, args)
+        download_image(link, args)
     elif re.search(r'imgur\.com/', link):
         if webpage == '' and re.search(r'layout/grid', link):
             log(logger.WARNING, 'grid layout not found, trying again')
-            webpage = getWebPage(link.replace('/layout/grid', ''))
+            webpage = get_web_page(link.replace('/layout/grid', ''))
             for image in re.findall(
                     args.imgur_gallery_image_regex,
                     webpage):
-                downloadImage(image, args)
+                download_image(image, args)
         else:
             for image in re.findall(
                     args.imgur_grid_image_regex,
                     webpage):
-                downloadImage(image, args)
+                download_image(image, args)
 
 
-def cleanLink(link, args):
+def clean_link(link, args):
     if not re.match(r'https?://', link):
         link = 'https://' + link
     else:
@@ -170,7 +172,7 @@ def cleanLink(link, args):
     return link
 
 
-def isGallery(link, args):
+def is_gallery(link, args):
     '''
     # Check if a link is (by default) an '//imgur.com' or '//gfycat.com' link
     # If so, it's probably HTML so we return true
@@ -182,7 +184,7 @@ def isGallery(link, args):
     return False
 
 
-def getAllImages(webpage, args):
+def get_all_images(webpage, args):
     '''
     # Find all submitted image links in a page
     # For each one, clean up the link and check if it's a gallery (HTML)
@@ -193,19 +195,19 @@ def getAllImages(webpage, args):
 
         print('')
 
-        link = cleanLink(link, args)
+        link = clean_link(link, args)
 
-        if isGallery(link, args):
+        if is_gallery(link, args):
             if re.search(r'imgur\.com', link):
                 if args.imgur_force_grid:
                     if not re.search(r'/layout/grid/?$', link):
                         link = link + '/layout/grid'
-            downloadImageGallery(link, args)
+            download_image_gallery(link, args)
         else:
-            downloadImage(link, args)
+            download_image(link, args)
 
 
-def pageGetNextPage(webpage, args):
+def page_get_next_page(webpage, args):
     '''
     # Find the link to the next page, if it exists
     # If it does, download and return the page
@@ -216,26 +218,26 @@ def pageGetNextPage(webpage, args):
         webpage)
 
     if not nextPage == []:
-        return getWebPage(nextPage[0].replace('amp;', ''))
+        return get_web_page(nextPage[0].replace('amp;', ''))
     else:
         return None
 
 
-def actionDownloadSubmittedImages(args):
+def action_download_submitted_images(args):
     # Download all images from the first page
-    userSubmitted = getSubmittedPage(args)
-    getAllImages(userSubmitted, args)
+    userSubmitted = get_submitted_page(args)
+    get_all_images(userSubmitted, args)
 
     if args.recursive:  # misnomer
         while True:  # Loop until we can't find a next page link
-            userSubmitted = pageGetNextPage(userSubmitted, args)
+            userSubmitted = page_get_next_page(userSubmitted, args)
             if userSubmitted is None:
                 break
 
-            getAllImages(userSubmitted, args)
+            get_all_images(userSubmitted, args)
 
 
-def actionDownloadImgurGallery(args):
+def action_download_imgur_gallery(args):
     if not re.match(
             r"^(?:a/|gallery/|)(?:[a-zA-Z0-9]{5}|[a-zA-Z0-9]{7})$",
             args.gallery):
@@ -252,7 +254,7 @@ def actionDownloadImgurGallery(args):
         if re.search(r'/gallery/', url):
             url = url.replace('/gallery/', '/a/')
 
-    downloadImageGallery(url, args)
+    download_image_gallery(url, args)
 
 
 def t_or_f(arg):
@@ -454,10 +456,10 @@ advArgGroup.add_argument(
 args = parser.parse_args()
 
 if args.userName:
-    downloadDirectory = os.path.expanduser(args.directory +
+    download_directory = os.path.expanduser(args.directory +
                                            '/' + args.userName)
 elif args.gallery:
-    downloadDirectory = os.path.expanduser(args.directory +
+    download_directory = os.path.expanduser(args.directory +
                                            '/gallery/' + args.gallery)
 
 colorama.init()
@@ -470,6 +472,6 @@ if not os.path.exists(downloadDirectory):
 os.chdir(downloadDirectory)
 
 if args.userName:
-    actionDownloadSubmittedImages(args)
+    action_download_submitted_images(args)
 elif args.gallery:
-    actionDownloadImgurGallery(args)
+    action_download_imgur_gallery(args)
