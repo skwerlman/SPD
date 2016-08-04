@@ -304,6 +304,7 @@ def is_uname(arg):
 
 
 def get_args():
+    global parser
     parser = ArgumentParser(
         description='SPD: Download every image a redditor ' +
                     'has submitted (ever)',
