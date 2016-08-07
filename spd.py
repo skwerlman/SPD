@@ -88,7 +88,7 @@ def download_image(link):
     elif operating_system() == 'Windows':
         log.d('on windows, adjusting wget_command')
         wget_command = [which('wget'), '-b', '-N', '-o', 'NUL',
-                       '--no-check-certificate', link]
+                        '--no-check-certificate', link]
 
     try:
         while call(wget_command) != 0:
@@ -109,12 +109,12 @@ def download_image_gallery(link):
     # Otherwise, find all '//i.imgur.com' links and download each one
     '''
     global args
-    if re.search(r'gfycat\.com/', link):
+    if 'gfycat.com/' in link:
         log.d('page is gfycat')
-        if not re.search(r'\.gif', link):
-            link = link.replace('gfycat', 'giant.gfycat') + '.gif'
+        if not re.search(r'\.(gif|webm)', link):
+            link = link.replace('gfycat', 'fat.gfycat') + '.webm'
         download_image(link)
-    elif re.search(r'imgur\.com/', link):
+    elif 'imgur.com/' in link:
         webpage = get_web_page(link)
         if str(webpage) == '404' and re.search(r'layout/grid', link):
             log.w('grid layout not found, trying again')
@@ -153,6 +153,9 @@ def clean_link(link):
         link = link.replace('.gifv', '.gif')
     if args.webm_as_gif:
         link = link.replace('.webm', '.gif')
+        if '.gfycat.com/' in link:  # fix when config
+            link = link.replace('//zippy.', '//giant.')
+            link = link.replace('//fat.', '//giant.')
     if args.clean_imgur_links:
         link = link.replace('?1', '')
     if args.imgur_force_grid:
@@ -426,6 +429,7 @@ def get_args():
         help='Sets a custom regex for finding all images on the user\'s ' +
              'submitted page.',
         default='(https?://(?:gfycat\\.com/[a-zA-Z]+?|' +
+                '(?:fat|giant|zippy)\\.gfycat\\.com/[a-zA-Z]+?\\.webm|' +
                 'giant\\.gfycat\\.com/[a-zA-Z]+?\\.gif|' +
                 'imgur\\.com/(?:[a-zA-Z0-9]{7}|[a-zA-Z0-9]{5})|' +
                 'imgur\\.com/a/[a-zA-Z0-9]{5}|' +
