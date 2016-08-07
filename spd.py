@@ -197,8 +197,6 @@ def get_all_images(webpage):
         if re.search(args.image_link_regex, link):
             if 'title' in url.get('class'):
 
-                print('')  # why is this here????
-
                 link = clean_link(link)
 
                 if is_gallery(link):
