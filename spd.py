@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import logging
 import os
 import re
 import time
@@ -16,7 +17,6 @@ from urllib.request import Request, urlopen
 from zenlog import log
 
 if operating_system() == 'Windows':
-    log.d('on windows, importing colorama')
     import colorama
     colorama.init()
 
@@ -368,7 +368,7 @@ def get_args():
         dest='recursive')
 
     parser.add_argument(
-        '-D', '--imgur-force-grid',
+        '-F', '--imgur-force-grid',
         choices=[True, False],
         type=t_or_f,
         help='Whether to use the grid layout when looking at a gallery.',
@@ -394,6 +394,12 @@ def get_args():
         type=t_or_f,
         help='Whether to strip the \'?1\' from the end of Imgur links.',
         default=True)
+
+    parser.add_argument(
+        '-D', '--debug',
+        help='Enable debug output',
+        action='store_true',
+        default=False)
 
     # advanced args
     adv_arg_group.add_argument(
@@ -465,6 +471,11 @@ def get_args():
 def main():
     global args
     args = get_args()
+
+    if not args.debug:
+        log.level(logging.INFO)
+    else:
+        log.level(logging.DEBUG)
 
     if args.user_name:
         download_directory = os.path.expanduser(args.directory +
