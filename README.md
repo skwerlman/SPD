@@ -8,7 +8,7 @@ Currently only works with images uploaded to [imgur](//imgur.com) or [gfycat](//
 Let me know if you need it to work with another site.
 
 # NOTE: SPD IS BEING REWRITTEN
-The old codebase was buggy and inflexible, largely because it was the second program I'd ever written in Python.\
+The old codebase was buggy and inflexible, largely because it was the second program I'd ever written in Python.
 I'm currently in the process of rewriting it from scratch, hopefully with fewer bugs than before.
 
 #### INSTALLATION
