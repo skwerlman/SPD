@@ -147,7 +147,7 @@ def clean_link(link):
     old_link = link
     if not re.match(r'https?://', link):
         link = 'https://' + link
-    else:
+    elif 'https://' not in link:
         link = link.replace('http://', 'https://')
     if args.gifv_as_gif:
         link = link.replace('.gifv', '.gif')
