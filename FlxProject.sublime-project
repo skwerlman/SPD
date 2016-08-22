@@ -1,0 +1,25 @@
+{
+	"folders":
+	[
+		{
+			"name": "Flixel",
+			"path": "C:\\HaxeToolkit\\haxe\\lib\\flixel\\4,1,1"
+		},
+		{
+			"name": "Flixel Addons",
+			"path": "C:\\HaxeToolkit\\haxe\\lib\\flixel-addons\\2,1,0"
+		},
+		{
+			"name": "Flixel UI",
+			"path": "C:\\HaxeToolkit\\haxe\\lib\\flixel-ui\\2,1,0"
+		},
+		{
+			"name": "Haxe",
+			"path": "C:\\HaxeToolkit\\haxe\\std"
+		},
+		{
+			"name": "Flixel Demos",
+			"path": "C:\\HaxeToolkit\\haxe\\lib\\flixel-demos\\2,2,0"
+		}
+	]
+}
